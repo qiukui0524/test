@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>学图分享 · Claude</title>
+<style>
+/* ===== Claude — 对话式温和风格 ===== */
+/* --- 亮色主题（默认） --- */
+:root, [data-theme="light"] {
+  --bg: #faf7f2;
+  --surface: #fffef9;
+  --border: #e8e0d5;
+  --text: #3d3929;
+  --text-secondary: #8b8574;
+  --accent: #d97706;
+  --accent-light: #fef3c7;
+  --accent-hover: #b45309;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,0.08);
+  --font: 'Georgia', 'Noto Serif SC', 'STSong', serif;
+  --font-ui: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+/* --- 深色主题 --- */
+[data-theme="dark"] {
+  --bg: #1a1814;
+  --surface: #252320;
+  --border: #3d3830;
+  --text: #e8e4d9;
+  --text-secondary: #9d9685;
+  --accent: #f59e0b;
+  --accent-light: #3d3520;
+  --accent-hover: #d97706;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,0.4);
+}
+[data-theme="dark"] .btn-primary { color: #1a1814; }
+[data-theme="dark"] .lightbox { background: rgba(0,0,0,0.95); }
+[data-theme="dark"] .admin-modal { background: rgba(0,0,0,0.7); }
+[data-theme="dark"] .admin-login-err { color: #f87171; }
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: var(--font-ui);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+  transition: background 0.3s, color 0.3s;
+}
+/* ===== 免责声明 ===== */
+.disclaimer-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.3s;
+}
+.disclaimer-card {
+  max-width: 560px; width: 90%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 48px 40px;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+.disclaimer-card h1 {
+  font-family: var(--font);
+  font-size: 1.6rem;
+  color: var(--text);
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+.disclaimer-card .divider {
+  width: 40px; height: 3px;
+  background: var(--accent);
+  margin: 0 auto 24px;
+  border-radius: 2px;
+}
+.disclaimer-card .content {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.8;
+  margin-bottom: 32px;
+  padding: 20px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  transition: background 0.3s;
+}
+.disclaimer-btns { display: flex; gap: 12px; justify-content: center; }
+.btn {
+  padding: 10px 28px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border: none;
+  font-family: var(--font-ui);
+  transition: all 0.2s;
+  font-weight: 500;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+.btn-ghost:hover { background: var(--bg); }
+
+/* ===== 主导航 ===== */
+.app-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  transition: background 0.3s, border-color 0.3s;
+}
+.app-header .logo {
+  font-family: var(--font);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.app-header .logo span { color: var(--accent); }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.back-btn {
+  background: none; border: 1px solid var(--border);
+  padding: 6px 16px; border-radius: 8px;
+  cursor: pointer; font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  transition: all 0.2s;
+}
+.back-btn:hover { background: var(--bg); }
+
+/* ===== 深色模式切换按钮 ===== */
+.theme-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 36px; height: 36px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  transition: all 0.2s;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.theme-toggle:hover { background: var(--bg); transform: rotate(20deg); }
+[data-theme="dark"] .theme-toggle:hover { transform: rotate(-20deg); }
+
+/* ===== 页面容器 ===== */
+.page { display: none; max-width: 800px; margin: 0 auto; padding: 32px 20px; }
+.page.active { display: block; }
+.page-title {
+  font-family: var(--font);
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.page-subtitle { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 28px; }
+
+/* ===== 科目卡片 ===== */
+.subject-list { display: flex; flex-direction: column; gap: 8px; }
+.subject-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px 20px;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 16px;
+  transition: all 0.2s;
+  box-shadow: var(--shadow);
+}
+.subject-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+}
+.subject-icon {
+  width: 48px; height: 48px;
+  background: var(--accent-light);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.subject-name { font-size: 1.05rem; font-weight: 500; }
+.subject-arrow { margin-left: auto; color: var(--text-secondary); font-size: 0.8rem; }
+
+/* ===== 期数网格 ===== */
+.period-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 10px;
+}
+.period-item {
+  aspect-ratio: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  box-shadow: var(--shadow);
+}
+.period-item:hover {
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ===== 图片网格 ===== */
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+.image-grid img {
+  width: 100%;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.image-grid img:hover {
+  transform: scale(1.03);
+  box-shadow: var(--shadow-lg);
+}
+.no-images {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+
+/* ===== 灯箱 ===== */
+.lightbox {
+  display: none;
+  position: fixed; inset: 0; z-index: 9998;
+  background: rgba(0,0,0,0.9);
+  align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.lightbox.active { display: flex; }
+.lightbox img {
+  max-width: 92vw; max-height: 90vh;
+  border-radius: 8px;
+  object-fit: contain;
+}
+.lightbox-close {
+  position: absolute; top: 20px; right: 20px;
+  color: #fff; font-size: 2rem; cursor: pointer;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ===== 管理后台 ===== */
+.admin-entry {
+  text-align: center; padding: 40px 20px;
+}
+.admin-entry a {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  text-decoration: none;
+  opacity: 0.6;
+}
+.admin-entry a:hover { opacity: 1; }
+[data-theme="dark"] .admin-entry a { opacity: 0.4; }
+[data-theme="dark"] .admin-entry a:hover { opacity: 0.8; }
+
+.admin-modal {
+  display: none;
+  position: fixed; inset: 0; z-index: 9997;
+  background: rgba(0,0,0,0.5);
+  align-items: center; justify-content: center;
+}
+.admin-modal.active { display: flex; }
+.admin-panel {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 32px;
+  width: 90%; max-width: 500px;
+  max-height: 85vh; overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  transition: background 0.3s;
+}
+[data-theme="dark"] .admin-panel { border: 1px solid var(--border); }
+.admin-panel h2 { font-family: var(--font); margin-bottom: 20px; color: var(--text); }
+.admin-panel label { display: block; font-size: 0.9rem; margin-bottom: 4px; color: var(--text-secondary); }
+.admin-panel select, .admin-panel input {
+  width: 100%; padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px; font-size: 0.95rem;
+  margin-bottom: 16px; font-family: var(--font-ui);
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.3s, border-color 0.3s, color 0.3s;
+}
+.admin-images { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.admin-images .thumb {
+  position: relative; width: 80px; height: 80px;
+  border-radius: 6px; overflow: hidden; border: 1px solid var(--border);
+}
+.admin-images .thumb img { width: 100%; height: 100%; object-fit: cover; }
+.admin-images .thumb .del {
+  position: absolute; top: 2px; right: 2px;
+  background: rgba(220,38,38,0.9); color: #fff;
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 0.8rem; line-height: 1;
+}
+.admin-login-err { color: #dc2626; font-size: 0.85rem; margin-bottom: 12px; display: none; }
+</style>
+</head>
+<body>
+
+<!-- 免责声明 -->
+<div class="disclaimer-overlay" id="disclaimerOverlay">
+  <div class="disclaimer-card">
+    <h1>免责声明</h1>
+    <div class="divider"></div>
+    <div class="content">[此处为免责声明内容]</div>
+    <div class="disclaimer-btns">
+      <button class="btn btn-primary" onclick="agreeDisclaimer()">同意</button>
+      <button class="btn btn-ghost" onclick="disagreeDisclaimer()">不同意</button>
+    </div>
+  </div>
+</div>
+
+<!-- 顶部导航 -->
+<header class="app-header" id="appHeader" style="display:none">
+  <div class="logo">📖 学图<span>分享</span></div>
+  <div class="header-right">
+    <button class="back-btn" id="backBtn" onclick="goBack()" style="display:none">← 返回</button>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="切换深色/亮色模式">🌙</button>
+  </div>
+</header>
+
+<!-- 页面容器 -->
+<main>
+  <div class="page active" id="page-subjects">
+    <h2 class="page-title">科目</h2>
+    <p class="page-subtitle">选择一个科目查看学习图片</p>
+    <div class="subject-list" id="subjectList"></div>
+  </div>
+  <div class="page" id="page-periods">
+    <h2 class="page-title" id="periodsTitle"></h2>
+    <p class="page-subtitle">选择一期查看图片</p>
+    <div class="period-grid" id="periodGrid"></div>
+  </div>
+  <div class="page" id="page-images">
+    <h2 class="page-title" id="imagesTitle"></h2>
+    <p class="page-subtitle">点击图片放大查看</p>
+    <div class="image-grid" id="imageGrid"></div>
+    <div class="no-images" id="noImages" style="display:none">📭 该期暂无图片，请通过管理后台上传</div>
+  </div>
+</main>
+
+<div class="admin-entry">
+  <a href="javascript:void(0)" onclick="openAdminLogin()">管理入口</a>
+</div>
+
+<div class="admin-modal" id="adminLoginModal">
+  <div class="admin-panel">
+    <h2>管理员登录</h2>
+    <label>用户名</label>
+    <input type="text" id="adminUser" placeholder="admin">
+    <label>密码</label>
+    <input type="password" id="adminPass" placeholder="123456">
+    <p class="admin-login-err" id="adminLoginErr">用户名或密码错误</p>
+    <button class="btn btn-primary" onclick="adminLogin()" style="width:100%;margin-bottom:8px">登录</button>
+    <button class="btn btn-ghost" onclick="closeAdminLogin()" style="width:100%">取消</button>
+  </div>
+</div>
+
+<div class="admin-modal" id="adminPanelModal">
+  <div class="admin-panel">
+    <h2>📁 图片管理</h2>
+    <label>科目</label>
+    <select id="adminSubject"></select>
+    <label>期数</label>
+    <input type="number" id="adminPeriod" min="1" max="17" value="1">
+    <button class="btn btn-primary" onclick="loadAdminImages()" style="width:100%;margin-bottom:12px">查看图片</button>
+    <label>上传图片</label>
+    <input type="file" id="adminFile" accept="image/*" multiple onchange="uploadImages()">
+    <div class="admin-images" id="adminImages"></div>
+    <button class="btn btn-ghost" onclick="closeAdminPanel()" style="width:100%;margin-top:8px">关闭</button>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <span class="lightbox-close">&times;</span>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<script>
+// ===== 深色模式切换 =====
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('claude_theme', next);
+  updateThemeIcon(next);
+}
+function updateThemeIcon(theme) {
+  document.getElementById('themeToggle').textContent = theme === 'dark' ? '☀️' : '🌙';
+}
+function applySavedTheme() {
+  const saved = localStorage.getItem('claude_theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  updateThemeIcon(saved);
+}
+applySavedTheme();
+
+// ===== 常量 =====
+const SUBJECTS = ['语文','数学','英语','物理','化学','生物'];
+const TOTAL_PERIODS = 17;
+const STORAGE_KEY = 'learning_share_images';
+const ADMIN_CRED = { user: 'admin', pass: '123456' };
+let currentSubject = '';
+let currentPeriod = 0;
+let pageStack = [];
+
+function agreeDisclaimer() {
+  localStorage.setItem('learning_share_agreed', '1');
+  document.getElementById('disclaimerOverlay').style.display = 'none';
+  document.getElementById('appHeader').style.display = 'flex';
+  initSubjects();
+}
+function disagreeDisclaimer() { alert('您必须同意免责声明才能使用本站。'); }
+
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+}
+function goBack() {
+  if (pageStack.length > 0) {
+    const prev = pageStack.pop();
+    if (prev.page === 'subjects') {
+      showPage('page-subjects');
+      document.getElementById('backBtn').style.display = 'none';
+    } else if (prev.page === 'periods') {
+      showPage('page-periods');
+    }
+  }
+  if (pageStack.length === 0) document.getElementById('backBtn').style.display = 'none';
+}
+
+function getImages() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+  catch(e) { return {}; }
+}
+function saveImages(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+function getSubjectImages(subject, period) {
+  const data = getImages();
+  return data[subject + '_' + period] || [];
+}
+function addImage(subject, period, base64) {
+  const data = getImages();
+  const key = subject + '_' + period;
+  if (!data[key]) data[key] = [];
+  data[key].push(base64);
+  saveImages(data);
+}
+function removeImage(subject, period, index) {
+  const data = getImages();
+  const key = subject + '_' + period;
+  if (data[key]) {
+    data[key].splice(index, 1);
+    if (data[key].length === 0) delete data[key];
+    saveImages(data);
+  }
+}
+
+function initSubjects() {
+  document.getElementById('subjectList').innerHTML = SUBJECTS.map(s =>
+    `<div class="subject-card" onclick="openSubject('${s}')">
+      <div class="subject-icon">${s[0]}</div>
+      <span class="subject-name">${s}</span>
+      <span class="subject-arrow">›</span>
+    </div>`
+  ).join('');
+}
+function openSubject(subject) {
+  currentSubject = subject;
+  pageStack.push({ page: 'subjects' });
+  document.getElementById('backBtn').style.display = 'inline-block';
+  document.getElementById('periodsTitle').textContent = subject;
+  showPage('page-periods');
+  initPeriods();
+}
+function initPeriods() {
+  let html = '';
+  for (let i = 1; i <= TOTAL_PERIODS; i++)
+    html += `<div class="period-item" onclick="openPeriod(${i})">${i}</div>`;
+  document.getElementById('periodGrid').innerHTML = html;
+}
+function openPeriod(period) {
+  currentPeriod = period;
+  pageStack.push({ page: 'periods' });
+  document.getElementById('imagesTitle').textContent = currentSubject + ' · 第 ' + period + ' 期';
+  showPage('page-images');
+  loadImages();
+}
+function loadImages() {
+  const images = getSubjectImages(currentSubject, currentPeriod);
+  const grid = document.getElementById('imageGrid');
+  const noImg = document.getElementById('noImages');
+  if (images.length === 0) {
+    grid.innerHTML = '';
+    noImg.style.display = 'block';
+  } else {
+    noImg.style.display = 'none';
+    grid.innerHTML = images.map((img, i) =>
+      `<img src="${img}" alt="图片 ${i+1}" onclick="event.stopPropagation(); openLightbox('${img}')">`
+    ).join('');
+  }
+}
+function openLightbox(src) {
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').classList.add('active');
+}
+function closeLightbox() { document.getElementById('lightbox').classList.remove('active'); }
+
+function openAdminLogin() {
+  document.getElementById('adminLoginModal').classList.add('active');
+  document.getElementById('adminLoginErr').style.display = 'none';
+}
+function closeAdminLogin() { document.getElementById('adminLoginModal').classList.remove('active'); }
+function adminLogin() {
+  const u = document.getElementById('adminUser').value.trim();
+  const p = document.getElementById('adminPass').value.trim();
+  if (u === ADMIN_CRED.user && p === ADMIN_CRED.pass) { closeAdminLogin(); openAdminPanel(); }
+  else document.getElementById('adminLoginErr').style.display = 'block';
+}
+function openAdminPanel() {
+  document.getElementById('adminSubject').innerHTML = SUBJECTS.map(s => `<option value="${s}">${s}</option>`).join('');
+  document.getElementById('adminPeriod').value = 1;
+  document.getElementById('adminPanelModal').classList.add('active');
+  loadAdminImages();
+}
+function closeAdminPanel() { document.getElementById('adminPanelModal').classList.remove('active'); }
+function loadAdminImages() {
+  const subject = document.getElementById('adminSubject').value;
+  const period = parseInt(document.getElementById('adminPeriod').value);
+  const images = getSubjectImages(subject, period);
+  document.getElementById('adminImages').innerHTML = images.map((img, i) =>
+    `<div class="thumb"><img src="${img}" alt=""><span class="del" onclick="deleteAdminImage('${subject}',${period},${i})">×</span></div>`
+  ).join('');
+  if (subject === currentSubject && period === currentPeriod) loadImages();
+}
+function deleteAdminImage(subject, period, index) {
+  if (!confirm('确定删除这张图片吗？')) return;
+  removeImage(subject, period, index);
+  loadAdminImages();
+}
+function uploadImages() {
+  const subject = document.getElementById('adminSubject').value;
+  const period = parseInt(document.getElementById('adminPeriod').value);
+  const files = document.getElementById('adminFile').files;
+  let processed = 0;
+  for (const file of files) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      addImage(subject, period, e.target.result);
+      processed++;
+      if (processed === files.length) { loadAdminImages(); document.getElementById('adminFile').value = ''; }
+    };
+    reader.readAsDataURL(file);
+  }
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeLightbox(); closeAdminLogin(); closeAdminPanel(); } });
+if (localStorage.getItem('learning_share_agreed') === '1') agreeDisclaimer();
+</script>
+</body>
+</html>

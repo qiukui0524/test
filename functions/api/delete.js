@@ -1,7 +1,7 @@
 // Pages Function: DELETE /api/delete
 // 删除图片：JSON { subject, period, id, pass }
 export async function onRequestDelete({ request, env }) {
-  const ADMIN_PASS = '123456';
+  const ADMIN_PASS = 'homeworkhelperbyqiukui172839@@';
   let body;
   try { body = await request.json(); } catch (e) { return Response.json({ error: '参数错误' }, { status: 400 }); }
   const { subject, period, id, pass } = body || {};

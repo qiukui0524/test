@@ -2,7 +2,7 @@
 // 上传图片：FormData { subject, period, file, pass }
 // 图片以 Base64 存入 KV（免费，无需 R2）
 export async function onRequestPost({ request, env }) {
-  const ADMIN_PASS = '123456';
+  const ADMIN_PASS = 'homeworkhelperbyqiukui172839@@';
   const form = await request.formData();
   const subject = (form.get('subject') || '').trim();
   const period = (form.get('period') || '').trim();

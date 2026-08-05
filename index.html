@@ -156,9 +156,9 @@ body { font-family: var(--font-ui); background: var(--bg); color: var(--text); m
   <div class="admin-panel">
     <h2>管理员登录</h2>
     <label>用户名</label>
-    <input type="text" id="adminUser" placeholder="admin">
+    <input type="text" id="adminUser" placeholder="qiukui0524666">
     <label>密码</label>
-    <input type="password" id="adminPass" placeholder="123456">
+    <input type="password" id="adminPass" placeholder="请输入管理密码">
     <p class="admin-login-err2" id="adminLoginErr2">用户名或密码错误</p>
     <button class="btn btn-primary" onclick="adminLogin()" style="width:100%;margin-bottom:8px">登录</button>
     <button class="btn btn-ghost" onclick="closeAdminLogin()" style="width:100%">取消</button>
@@ -191,8 +191,8 @@ applySavedTheme();
 // ===== 常量 =====
 const SUBJECTS = ['语文','数学','英语','物理','化学','生物'];
 const TOTAL_PERIODS = 17;
-const ADMIN_USER = 'admin';
-const ADMIN_PASS = '123456';   // ← 管理密码（后端同此值，可自行修改）
+const ADMIN_USER = 'qiukui0524666';
+const ADMIN_PASS = 'homeworkhelperbyqiukui172839@@';   // ← 管理密码（后端同此值，可自行修改）
 let currentSubject = '';
 let currentPeriod = 0;
 let pageStack = [];

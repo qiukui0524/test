@@ -1,0 +1,9 @@
+# wrangler.toml — Pages Functions 绑定配置
+name = "homeworkhelper"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "."
+
+# KV 绑定（图片 + 索引都存这里，免费）
+[[kv_namespaces]]
+binding = "IMAGES_INDEX"
+id = "495612b4219146128ac20cad4a5f0d4c"

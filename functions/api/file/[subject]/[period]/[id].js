@@ -1,28 +1,29 @@
 // Pages Function: GET /api/file/{subject}/{period}/{id}
-// 从 R2 读取图片并返回（支持缓存）
+// 从 KV 读取 Base64 图片并返回
 export async function onRequestGet({ env, params, request }) {
   const subject = decodeURIComponent(params.subject || '');
   const period = params.period || '';
   const id = params.id || '';
-  const objKey = `${subject}/${period}/${id}`;
+  const key = `img:${subject}:${period}:${id}`;
 
-  const obj = await env.IMAGES.get(objKey);
-  if (!obj) return new Response('Not Found', { status: 404 });
+  const dataUrl = await env.IMAGES_INDEX.get(key);
+  if (!dataUrl) return new Response('Not Found', { status: 404 });
+
+  // dataUrl 格式: data:image/jpeg;base64,xxxx
+  const comma = dataUrl.indexOf(',');
+  if (comma < 0) return new Response('Bad Data', { status: 500 });
+  const meta = dataUrl.slice(0, comma);
+  const mime = (meta.match(/^data:([^;]+)/) || [])[1] || 'image/jpeg';
+  const b64 = dataUrl.slice(comma + 1);
+
+  // Base64 → Uint8Array（兼容 Cloudflare Workers 环境）
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
 
   const headers = new Headers();
-  headers.set('Content-Type', obj.httpMetadata?.contentType || 'image/jpeg');
+  headers.set('Content-Type', mime);
   headers.set('Cache-Control', 'public, max-age=31536000, immutable');
-  // 支持 Range 请求（大图滚动加载）
-  const range = request.headers.get('Range');
-  if (range) {
-    const [start, end] = range.replace('bytes=', '').split('-').map(n => parseInt(n));
-    const total = obj.size;
-    const s = start || 0;
-    const e = end || total - 1;
-    const chunk = await obj.arrayBuffer();
-    headers.set('Content-Range', `bytes ${s}-${e}/${total}`);
-    headers.set('Accept-Ranges', 'bytes');
-    return new Response(chunk.slice(s, e + 1), { status: 206, headers });
-  }
-  return new Response(obj.body, { headers });
+  headers.set('Access-Control-Allow-Origin', '*');
+  return new Response(bytes, { headers });
 }

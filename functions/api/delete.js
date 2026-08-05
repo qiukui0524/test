@@ -8,9 +8,8 @@ export async function onRequestDelete({ request, env }) {
   if (pass !== ADMIN_PASS) return Response.json({ error: '无权限' }, { status: 403 });
   if (!subject || !period || !id) return Response.json({ error: '参数缺失' }, { status: 400 });
 
-  // 1. 删除 R2 中的图片
-  const objKey = `${subject}/${period}/${id}`;
-  try { await env.IMAGES.delete(objKey); } catch (e) { /* ignore */ }
+  // 1. 删除 KV 中的图片数据
+  await env.IMAGES_INDEX.delete(`img:${subject}:${period}:${id}`);
 
   // 2. 从 KV 索引中移除
   const idxKey = `index:${subject}:${period}`;
